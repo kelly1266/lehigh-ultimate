@@ -12,13 +12,13 @@ async def role_in_list(role_name, role_list):
     i = 0
     while i < len(role_list) and not in_list:
         in_list = role_name == role_list[i].name.lower()
-        i+=1
+        i += 1
     return in_list
 
 
 @client.command(
     name='ping',
-    description = 'Tests that a bot is active.',
+    description='Tests that a bot is active.',
     pass_context=True,
 )
 async def ping(context):
@@ -31,7 +31,7 @@ async def ping(context):
     pass_context=True
 )
 async def role(context, *args):
-    if len(args)>0:
+    if len(args) > 0:
         # get guild object
         guild = context.guild
         # parse role name
@@ -45,11 +45,40 @@ async def role(context, *args):
             # assign user the role
             await context.message.author.add_roles(get(guild.roles, name=role_name))
         else:
-            #create the role
+            # create the role
             created_role = await guild.create_role(name=role_name)
             await context.message.author.add_roles(created_role)
     return
 
+
+@client.command(
+    name='team',
+    description='creates a new channel that is only visible to people with the team role',
+    pass_context=True
+)
+async def team(context, *args):
+    if len(args) > 0:
+        # get guild object
+        guild = context.guild
+        # parse team name
+        team_name = ''
+        for x in args:
+            team_name = team_name + x + ' '
+        team_name = team_name[:-1].lower()
+        channel_name = team_name.replace(' ', '-')
+
+        if get(guild.text_channels, name=channel_name) is not None:
+            # channel exists
+            await context.message.author.add_roles(get(guild.roles, name=team_name))
+        else:
+            # channel does not exist
+            category_id = config.TEAM_CATEGORY
+            category = get(guild.categories, id=category_id)
+            await guild.create_text_channel(channel_name, category=category)
+            created_role = await guild.create_role(name=team_name)
+            await context.message.author.add_roles(created_role)
+
+    return
 
 @client.event
 async def on_ready():
